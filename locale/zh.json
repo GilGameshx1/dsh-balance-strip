@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "余额状态栏",
+    "description": "在窗口底部的状态栏中显示 DeepSeek 账户可用总余额和当前会话的 token 消耗。"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Balance Strip",
+    "description": "Shows the total available DeepSeek account balance and the current session's token spend in a strip along the bottom of the window."
+  }
+}

@@ -1,0 +1,15 @@
+# One row installs both halves: the Host half serves the same-origin status
+# route, the Client half renders the strip in `shell.bottom`.
+- insert:
+    - id: balance-strip
+      name: '@local/dsh-balance-strip'
+      config:
+        refreshSeconds: 20
+        # Money is shown only while at least one price is non-zero. Values are
+        # the provider's price per ONE MILLION tokens, in `currency`.
+        pricing:
+          currency: CNY
+          inputPerMillion: 0
+          cacheReadPerMillion: 0
+          cacheWritePerMillion: 0
+          outputPerMillion: 0
