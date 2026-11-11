@@ -17,7 +17,7 @@
     "locale/*.json",
     "icon.svg",
     "README.md",
-    "README.ru.md",
+    "README.en.md",
     "LICENSE"
   ],
   "dsh": {

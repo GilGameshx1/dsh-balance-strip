@@ -1,97 +1,93 @@
-English | [Русский](README.ru.md)
+Русский | [English](README.en.md)
 
-# DSH Balance Strip
+# Строка баланса для DSH
 
-A strip along the bottom of the DeepSeek Harness Web GUI reporting two live
-figures:
+Полоса внизу веб-интерфейса DeepSeek Harness с двумя живыми показателями:
 
-- **Balance** — the total available credit of the signed-in DeepSeek account:
-  topped-up wallets plus granted bonus wallets, summed per currency.
-- **Session** — the tokens spent in the Session on screen (prompt, cache read,
-  cache write, completion), folded from that Session's committed log. When
-  prices are configured, the estimated cost is appended.
+- **Баланс** — суммарный доступный остаток аккаунта DeepSeek: пополненные
+  кошельки плюс начисленные бонусы, отдельно по каждой валюте.
+- **Сессия** — израсходованные токены открытой сейчас сессии (запрос, чтение из
+  кеша, запись в кеш, ответ), свёрнутые из её журнала. Если заданы цены,
+  рядом добавляется оценка стоимости.
 
-Nothing is written anywhere: every value is derived per request, and the plugin
-has no dependencies and no build step.
+Ничего не записывается: каждое значение вычисляется по запросу. У плагина нет
+зависимостей и нет шага сборки.
 
-## Install
+## Установка
 
-Requires DeepSeek Harness with the Web GUI. The package is plain JavaScript, so
-any DSH Desktop on Windows, macOS, or Linux can take it.
+Нужен DeepSeek Harness с веб-интерфейсом. Пакет — обычный JavaScript, поэтому
+подойдёт любой DSH Desktop на Windows, macOS или Linux.
 
-1. Copy this directory anywhere on the target machine.
-2. Open **Plugins → Add plugin**, paste the absolute path to the directory, and
-   install. The bundle is selected automatically and the strip appears at the
-   bottom of the window; no restart is needed.
+1. Скопируй эту папку куда угодно на целевой машине.
+2. Открой **Plugins → Add plugin**, вставь абсолютный путь к папке и установи.
+   Bundle выбирается сам, полоса появляется внизу окна; перезапуск не нужен.
 
-The same dialog accepts the tarball from `npm pack` by its path, or a Git
-repository address.
+Тот же диалог принимает тарболл из `npm pack` (по пути) или адрес git-репозитория.
 
-For a profile the desktop application does not manage (web, tui, headless):
+Для профиля, которым не управляет десктопное приложение (web, tui, headless):
 
 ```sh
-dsh plugin --profile <profile> add /path/to/dsh-balance-strip
+dsh plugin --profile <профиль> add /путь/к/dsh-balance-strip
 ```
 
-The `desktop` profile belongs to the Electron application, so `dsh plugin`
-refuses it there; use the Plugins page instead.
+Профиль `desktop` принадлежит приложению Electron, поэтому `dsh plugin` его
+отказывается обслуживать — там только страница Plugins.
 
-Per-profile state — the enable/disable toggle and any price overrides — lives in
-the profile's `cordis.patch.yml`, not in this package, so a new machine starts
-from the defaults below.
+Состояние уровня профиля — переключатель включения и любые переопределения
+цен — живёт в `cordis.patch.yml` профиля, а не в этом пакете, поэтому на новой
+машине всё начинается со значений по умолчанию (см. ниже).
 
-## Where it renders
+## Где отображается
 
-The Client half registers the `shell.bottom` seat, the frame's full-width strip
-below the three columns. The occupant owns its height (26px), so the columns
-shrink by exactly that. The strip stays mounted across main-panel navigation and
-is independent of the right Sidebar's open state.
+Клиентская половина занимает слот `shell.bottom` — полосу во всю ширину под
+тремя колонками. Высоту (26 px) задаёт сам occupant, колонки ужимаются ровно на
+неё. Полоса остаётся смонтированной при переключении панелей и не зависит от
+того, открыта ли правая панель.
 
-## How the data flows
+## Как идут данные
 
-The browser half may not read the Platform credential, so the Host half owns
-every read and exposes one same-origin route:
+Браузерная половина не имеет доступа к креденшелу платформы, поэтому все чтения
+делает хост и отдаёт их одним same-origin маршрутом:
 
 ```
 GET /_dsh/balance-strip/status?session=<id>&locale=<lang>&tz=<seconds>&version=<build>
 ```
 
-| Field | Meaning |
+| Поле | Значение |
 |---|---|
-| `balance.status` | `ready`, `signed-out`, `failed`, or `unavailable` (no account service) |
-| `balance.wallets` | per currency: `toppedUp`, `bonus`, `total` |
-| `usage.status` | `ready`, `none` (no Session on screen), `unavailable`, or `failed` |
-| `usage.*Tokens` | token counts over every assistant message of the Session |
-| `usage.cost` | estimate, present only while a price is configured |
-| `refreshMs` | poll interval resolved from `refreshSeconds` |
-| `probe` | the last few requests this route answered (`status`, `fetchSite`, `origin`), for diagnosing a strip that shows no values |
+| `balance.status` | `ready`, `signed-out`, `failed` или `unavailable` (нет сервиса аккаунта) |
+| `balance.wallets` | по каждой валюте: `toppedUp`, `bonus`, `total` |
+| `usage.status` | `ready`, `none` (сессии на экране нет), `unavailable` или `failed` |
+| `usage.*Tokens` | счётчики токенов по всем ответам модели в сессии |
+| `usage.cost` | оценка стоимости, только если задана цена |
+| `refreshMs` | интервал опроса из `refreshSeconds` |
+| `probe` | последние запросы, которые ответил маршрут (`status`, `fetchSite`, `origin`) — для диагностики пустой полосы |
 
-The compact figure beside **Session** is the fresh prompt plus completion tokens;
-cached prompt reuse is priced and reported separately in the tooltip, because the
-provider bills the four token classes at different rates.
+Компактная цифра рядом с **Сессией** — это свежие токены запроса плюс ответ.
+Переиспользование кеша считается и показывается отдельно, в подсказке, потому
+что провайдер тарифицирует четыре класса токенов по-разному.
 
-The route accepts a request that carries no cross-origin evidence: a page
-request sends `Sec-Fetch-Site: same-origin` and no `Origin`, while the Desktop
-build carries the same fetch over an IPC bridge that sends neither header. A
-page on another origin announces itself and is rejected (403); the response
-carries no CORS headers either, so such a page could not read it.
+Маршрут принимает запрос, не несущий признаков другого origin: страница шлёт
+`Sec-Fetch-Site: same-origin` и не шлёт `Origin`, а десктопная сборка несёт тот
+же `fetch` через IPC-мост, который не шлёт ни того ни другого. Страница с
+другого origin себя объявляет и получает 403; CORS-заголовков в ответе тоже
+нет, так что прочитать его она бы не смогла.
 
-The balance comes from the Host-only `deepseekAccount.getBalance()` and is reused
-for 60 seconds; a stalled Platform read becomes a failed field after 8 seconds
-instead of holding the route. Session usage is folded incrementally, keyed by
-the Session's event count, and cached per Session with the 64 most recent
-Sessions retained.
+Баланс берётся из доступного только хосту `deepseekAccount.getBalance()` и
+переиспользуется 60 секунд; зависшее чтение платформы через 8 секунд становится
+полем `failed`, а не держит маршрут. Расход сессии сворачивается инкрементально,
+с привязкой к числу событий, и кешируется по сессии — хранятся 64 последние.
 
-## Configuration
+## Настройка
 
-Every value lives on the bundle's own row in `cordis.patch.yml`:
+Все значения живут в строке самого bundle в `cordis.patch.yml`:
 
 ```yaml
 - insert:
     - id: balance-strip
       name: '@local/dsh-balance-strip'
       config:
-        refreshSeconds: 20            # clamped to 5…600
+        refreshSeconds: 20            # зажимается в 5…600
         pricing:
           currency: CNY
           inputPerMillion: 0
@@ -100,18 +96,18 @@ Every value lives on the bundle's own row in `cordis.patch.yml`:
           outputPerMillion: 0
 ```
 
-`refreshSeconds` sets both the Host's cold-read reuse window and the browser's
-poll interval. Money appears only when at least one price is greater than zero;
-the numbers are an estimate computed from these prices, not billing data.
+`refreshSeconds` задаёт и окно переиспользования холодного чтения на хосте, и
+интервал опроса в браузере. Деньги появляются только когда хотя бы одна цена
+больше нуля; это оценка по этим ценам, а не данные биллинга.
 
-Cache reads, cache writes, prompt tokens, and completion tokens are disjoint in
-the provider's report, so the estimate is
+Чтение из кеша, запись в кеш, токены запроса и ответа у провайдера не
+пересекаются, поэтому оценка считается как
 `(input × input + cacheRead × cacheRead + cacheWrite × cacheWrite + output × output) / 1e6`.
-A provider that folds cache reads into its prompt count would be
-over-estimated here.
+Провайдер, который включает чтение из кеша в счётчик запроса, будет здесь
+переоценён.
 
-An override in the profile's own `cordis.patch.yml` takes precedence and applies
-without a restart:
+Переопределение в `cordis.patch.yml` профиля имеет приоритет и применяется без
+перезапуска:
 
 ```yaml
 - id: balance-strip
@@ -126,21 +122,21 @@ without a restart:
       outputPerMillion: 2
 ```
 
-## Notes and limits
+## Замечания и ограничения
 
-- Without a signed-in account the strip shows the sign-in hint; with an API-key
-  model route there is no Platform balance to read.
-- A Session that is not live is read through `sessionQuery.readSession()`, once
-  per refresh interval.
-- `pricing` affects the session estimate only; the balance is always the
-  account's own currency amounts.
-- The package name `@local/dsh-balance-strip` is the bundle's install name; the
-  repository directory name does not have to match it.
-- Verified against DSH `0.2.1-rc.2`. The plugin uses `shell.bottom`,
+- Без входа в аккаунт полоса показывает подсказку «войдите»; при модели на
+  API-ключе баланса платформы просто нет.
+- Сессия, которая не живёт в памяти, читается через
+  `sessionQuery.readSession()` — один раз за интервал обновления.
+- `pricing` влияет только на оценку сессии; баланс всегда в валюте самого
+  аккаунта.
+- Имя пакета `@local/dsh-balance-strip` — это install-имя bundle; имя каталога
+  репозитория ему не обязано совпадать.
+- Проверено на DSH `0.2.1-rc.2`. Плагин использует `shell.bottom`,
   `ctx.sidebarRight.mounted`, `webServer.register`, `deepseekAccount.getBalance`,
-  `sessions.get`, and `sessionQuery.readSession`; a Harness version that moved
-  one of those needs that call adjusted.
+  `sessions.get` и `sessionQuery.readSession`; если в другой версии Harness
+  что-то из этого переехало, соответствующий вызов нужно поправить.
 
-## License
+## Лицензия
 
-MIT — see [LICENSE](LICENSE).
+MIT — см. [LICENSE](LICENSE).
