@@ -1,3 +1,5 @@
+English | [Русский](README.ru.md)
+
 # DSH Balance Strip
 
 A strip along the bottom of the DeepSeek Harness Web GUI reporting two live
